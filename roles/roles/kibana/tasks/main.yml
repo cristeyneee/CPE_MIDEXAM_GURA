@@ -1,0 +1,44 @@
+---
+- name: Download and install Kibana
+  get_url:
+    url: https://artifacts.elastic.co/downloads/kibana/kibana-7.10.1-amd64.deb
+    dest: /tmp/kibana.deb
+  when: ansible_os_family == "Debian"
+
+- name: Install Kibana package
+  apt:
+    deb: /tmp/kibana.deb
+  when: ansible_os_family == "Debian"
+
+- name: Copy Kibana configuration file
+  template:
+    src: kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+    mode: '0644'
+
+- name: Create systemd service for Kibana
+  copy:
+    content: |
+      [Unit]
+      Description=Kibana
+      Documentation=https://www.elastic.co
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/share/kibana/bin/kibana "-c  /etc/kibana/kibana.yml"
+      User=kibana
+      Group=kibana
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/kibana.service
+    mode: '0644'
+
+- name: Enable and start Kibana service
+  systemd:
+    name: kibana
+    enabled: yes
+    state: started

@@ -1,0 +1,30 @@
+all:
+  children:
+    elasticsearch:
+      hosts:
+        192.168.56.112:
+    kibana:
+      hosts:
+        192.168.56.111:
+    logstash:
+      hosts:
+        192.168.56.113:
+    nagios:
+      hosts:
+        192.168.56.114:
+    grafana:
+      hosts:
+        192.168.56.111:
+    prometheus:
+      hosts:
+        192.168.56.112:
+    influxdb:
+      hosts:
+        192.168.56.113:
+    lampstack:
+      hosts:
+        192.168.56.112:
+        192.168.56.111:
+  vars:
+    ansible_user: cristine
+    ansible_ssh_private_key_file: /home/cristine/.ssh/id_rsa

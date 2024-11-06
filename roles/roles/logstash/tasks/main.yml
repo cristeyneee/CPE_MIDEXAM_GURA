@@ -1,0 +1,53 @@
+---
+- name: Download and install Logstash
+  get_url:
+    url: https://artifacts.elastic.co/downloads/logstash/logstash-7.10.1-linux-x86_64.tar.gz
+    dest: /tmp/logstash.tar.gz
+
+- name: Create Logstash installation directory
+  file:
+    path: /usr/share/logstash
+    state: directory
+    mode: '0755'
+
+- name: Extract Logstash
+  unarchive:
+    src: /tmp/logstash.tar.gz
+    dest: /usr/share/logstash
+    remote_src: yes
+    creates: /usr/share/logstash/bin/logstash
+
+- name: Copy Logstash configuration file
+  template:
+    src: logstash.yml.j2
+    dest: /usr/share/logstash/logstash.yml
+    mode: '0644'
+
+- name: Create Logstash systemd service
+  copy:
+    content: |
+      [Unit]
+      Description=Logstash
+      Documentation=https://www.elastic.co
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/share/logstash/logstash -f /usr/share/logstash/logstash.yml
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/logstash.service
+    mode: '0644'
+
+- name: Reload systemd to recognize Logstash service
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start Logstash service
+  systemd:
+    name: logstash
+    enabled: yes
+    state: started

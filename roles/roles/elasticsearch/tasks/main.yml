@@ -1,0 +1,59 @@
+---
+- name: Install dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - apt-transport-https
+    - openjdk-11-jdk
+  when: ansible_os_family == "Debian"
+
+- name: Download and install Elasticsearch
+  get_url:
+    url: https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.10.1-amd64.deb
+    dest: /tmp/elasticsearch.deb
+  when: ansible_os_family == "Debian"
+
+- name: Install Elasticsearch package
+  apt:
+    deb: /tmp/elasticsearch.deb
+  when: ansible_os_family == "Debian"
+
+- name: Copy Elasticsearch configuration file
+  template:
+    src: elasticsearch.yml.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+    mode: '0644'
+
+- name: Create systemd service for Elasticsearch
+  copy:
+    content: |
+      [Unit]
+      Description=Elasticsearch
+      Documentation=https://www.elastic.co
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/share/elasticsearch/bin/elasticsearch -p /var/run/elasticsearch/elasticsearch.pid
+      User=elasticsearch
+      Group=elasticsearch
+      Restart=on-failure
+      LimitNOFILE=65536
+      LimitNPROC=4096
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/elasticsearch.service
+    mode: '0644'
+
+- name: Reload systemd to apply new Elasticsearch service
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start Elasticsearch service
+  systemd:
+    name: elasticsearch
+    enabled: yes
+    state: started

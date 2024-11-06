@@ -1,0 +1,30 @@
+---
+- hosts: elasticsearch
+  become: yes
+  roles:
+    - elasticsearch
+
+- hosts: kibana
+  become: yes
+  roles:
+    - kibana
+
+- hosts: logstash
+  become: yes
+  roles:
+    - logstash
+
+- hosts: grafana
+  become: yes
+  roles:
+    - grafana
+
+- hosts: prometheus
+  become: yes
+  roles:
+    - prometheus
+
+- hosts: influxdb
+  become: yes
+  roles:
+    - influxdb

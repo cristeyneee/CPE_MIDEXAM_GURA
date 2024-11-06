@@ -1,0 +1,33 @@
+---
+- name: Install required packages for Nagios on Ubuntu
+  when: ansible_distribution == "Ubuntu"
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - wget
+    - curl
+    - gcc
+    - make
+    - libgd-dev
+    - apache2
+    - php
+    - libapache2-mod-php
+    - build-essential
+  
+- name: Install Nagios on Ubuntu Workstations
+  when: ansible_distribution == "Ubuntu"
+  shell: |
+    wget https://assets.nagios.com/downloads/nagioscore/releases/nagios-4.4.6.tar.gz
+    tar -zxvf nagios-4.4.6.tar.gz
+    cd nagios-4.4.6
+    ./configure --with-httpd-conf=/etc/apache2/sites-enabled
+    make all
+    make install
+    make install-init
+    make install-commandmode
+    make install-config
+    make install-webconf
+    a2enmod rewrite
+    a2enmod cgi
+    systemctl restart apache2 
